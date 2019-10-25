@@ -1,0 +1,49 @@
+
+# This program runs my game, which is based on shooting enemies.
+# Written by Samar Kapoor.
+​
+# Import commands
+import simplegui,random,math
+# Loading images
+BACKGROUND = simplegui.load_image("https://i.imgur.com/Pt9xw5v.jpg")
+GAME_OVER_IMG = simplegui.load_image("https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/VGiBmTeaeilt7mgjb/game-over-retro-arcade-digital-blue-style-1_nngybqf7pg__F0000.png")
+PLAYER_IMG = simplegui.load_image("https://i.imgur.com/RmNKOim.png")
+PLAYER_BULLET_IMG = simplegui.load_image("https://i.imgur.com/Uv9dM4w.png")
+ENEMY_BULLET_IMG = simplegui.load_image("https://i.imgur.com/mC20neb.png")
+ENEMY_1_IMG = simplegui.load_image("https://i.imgur.com/rqDJESS.png")
+ENEMY_2_IMG = simplegui.load_image("https://i.imgur.com/nXUMy6T.png")
+# Image dimensions  
+​
+FRAME_WIDTH = 1000
+FRAME_HEIGHT = 800
+​
+BACKGROUND_WIDTH = 2560
+BACKGROUND_HEIGHT = 904
+​
+GAME_OVER_IMG_WIDTH = 1920
+GAME_OVER_IMG_HEIGHT = 1080
+​
+PLAYER_IMG_WIDTH = 480
+PLAYER_IMG_HEIGHT = 700
+​
+PLAYER_BULLET_WIDTH = 952
+PLAYER_BULLET_HEIGHT = 452
+​
+ENEMY_BULLET_WIDTH = 1700
+ENEMY_BULLET_HEIGHT = 753
+​
+ENEMY_1_WIDTH = 39
+ENEMY_1_HEIGHT = 40
+​
+ENEMY_2_WIDTH = 32
+ENEMY_2_HEIGHT = 39
+​
+# Background animation
+background_pos = [0,FRAME_HEIGHT/2]
+scroll_speed = 2
+​
+# Variables defining
+lives = 3
+time = 0
+
+CodeSkulptor was built by Scott Rixner and is based upon CodeMirror and Skulpt.
