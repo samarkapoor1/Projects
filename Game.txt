@@ -1,0 +1,358 @@
+# This program runs my game, which is based on shooting enemies.
+# Written by Samar Kapoor.
+
+# Import commands
+import simplegui,random,math
+# Loading images
+BACKGROUND = simplegui.load_image("https://i.imgur.com/Pt9xw5v.jpg")
+GAME_OVER_IMG = simplegui.load_image("https://d2v9y0dukr6mq2.cloudfront.net/video/thumbnail/VGiBmTeaeilt7mgjb/game-over-retro-arcade-digital-blue-style-1_nngybqf7pg__F0000.png")
+PLAYER_IMG = simplegui.load_image("https://i.imgur.com/RmNKOim.png")
+PLAYER_BULLET_IMG = simplegui.load_image("https://i.imgur.com/Uv9dM4w.png")
+ENEMY_BULLET_IMG = simplegui.load_image("https://i.imgur.com/mC20neb.png")
+ENEMY_1_IMG = simplegui.load_image("https://i.imgur.com/rqDJESS.png")
+ENEMY_2_IMG = simplegui.load_image("https://i.imgur.com/nXUMy6T.png")
+# Image dimensions  
+
+FRAME_WIDTH = 1000
+FRAME_HEIGHT = 800
+
+BACKGROUND_WIDTH = 2560
+BACKGROUND_HEIGHT = 904
+
+GAME_OVER_IMG_WIDTH = 1920
+GAME_OVER_IMG_HEIGHT = 1080
+
+PLAYER_IMG_WIDTH = 480
+PLAYER_IMG_HEIGHT = 700
+
+PLAYER_BULLET_WIDTH = 952
+PLAYER_BULLET_HEIGHT = 452
+
+ENEMY_BULLET_WIDTH = 1700
+ENEMY_BULLET_HEIGHT = 753
+
+ENEMY_1_WIDTH = 39
+ENEMY_1_HEIGHT = 40
+
+ENEMY_2_WIDTH = 32
+ENEMY_2_HEIGHT = 39
+
+# Background animation
+background_pos = [0,FRAME_HEIGHT/2]
+scroll_speed = 2
+
+# Variables defining
+lives = 3
+time = 0
+score = 0
+high_score = 0
+shooting_time = 0
+game_over = False
+random_time = 100
+bullet_time = 100
+bullet_speed = -5
+shoot_time = 0
+
+# Lists
+enemies_list = []
+high_score_list = []
+enemy_bullets = []
+player_bullets = []
+collision = ()
+character_list = []
+
+# Size of objects on canvas
+PLAYER_SIZE = (125,150)
+PLAYER_BULLET_SIZE = (40,45)
+ENEMY_BULLET_SIZE = (50,45)
+ENEMY_1_SIZE = (100,100)
+ENEMY_2_SIZE = (100,100)
+
+def new_game():
+    global game_count, player,enemy_1,enemy_2,game_over,score,lives,background_pos,enemies_list,enemy_bullets,bullet_speed,player_bullets,collision,character_list
+    player = Character(PLAYER_IMG,
+                       [PLAYER_IMG_WIDTH/7,PLAYER_IMG_HEIGHT],
+                       [0,0])
+    
+    enemy_1 = Enemy(ENEMY_1_IMG,
+                    [ENEMY_1_WIDTH,ENEMY_1_HEIGHT],
+                    [0,0],"enemy_1")
+    
+    enemy_2 = Enemy(ENEMY_2_IMG,
+                    [ENEMY_2_WIDTH,ENEMY_2_HEIGHT],
+                    [0,0],"enemy_2")
+    score = 0
+    lives = 3
+    bullet_speed = -5
+    background_pos = [0,FRAME_HEIGHT/2]
+    enemies_list = []
+    enemy_bullets = []
+    player_bullets = []
+    collision = ()
+    character_list = []
+    game_over = False
+    
+# Distance to make sure collision happens
+def dist(pos1, pos2):
+    a = pos2[1]-pos1[1]
+    b = pos2[0]-pos1[0]
+    dis = math.sqrt(a**2+b**2)
+    return dis
+
+class Character:
+    def __init__(self, image, position, velocity):
+        self.image = image
+        self.pos = position
+        self.vel = velocity
+    
+    def draw(self, canvas): 
+        canvas.draw_image(self.image,
+                          [PLAYER_IMG_WIDTH/2,PLAYER_IMG_HEIGHT/2],
+                          [PLAYER_IMG_WIDTH,PLAYER_IMG_HEIGHT],
+                          self.pos,
+                          PLAYER_SIZE)   
+        
+    def shoot(self):
+        bullet = Bullet([self.pos[0]+PLAYER_SIZE[0]/2,self.pos[1]],[5.25,0],"player_bullets")
+        player_bullets.append(bullet)  
+    
+    def has_collided(self, other):
+        return PLAYER_SIZE[0]/2 > dist(self.pos,other.pos)
+    
+    def update(self):
+        self.pos[0] += self.vel[0]
+        self.pos[1] += self.vel[1]
+    
+class Enemy:
+    def __init__(self, image, position, velocity, type):
+        self.image = image
+        self.pos = position
+        self.vel = velocity
+        self.animated = False
+        self.time = 0
+        self.type = type       
+            
+    def draw(self, canvas):         
+        if self.type == "enemy_1":
+            canvas.draw_image(self.image,
+                             [ENEMY_1_WIDTH/2,ENEMY_1_HEIGHT/2],
+                             [ENEMY_1_WIDTH,ENEMY_1_HEIGHT],
+                             self.pos,
+                             ENEMY_1_SIZE)
+        
+        if self.type == "enemy_2":
+            canvas.draw_image(self.image,
+                             [ENEMY_2_WIDTH/2,ENEMY_2_HEIGHT/2],
+                             [ENEMY_2_WIDTH,ENEMY_2_HEIGHT],
+                             self.pos,
+                             ENEMY_2_SIZE)
+    
+    def update(self):
+        for i in range(2):
+            self.pos[i] += self.vel[i]
+    
+    def shoot(self):
+        bullet = Bullet([self.pos[0]+ ENEMY_1_SIZE[0]/2 -50, self.pos[1] + ENEMY_1_SIZE[1]/2 -75],[bullet_speed,0],"enemy_bullets")
+        enemy_bullets.append(bullet)
+        
+        
+    # Collisions       
+    def has_collided(self, other):
+        if self.type == "enemy_1":
+            return ENEMY_1_SIZE[0]/2 > dist(self.pos,other.pos)
+        if self.type == "enemy_2":
+            return ENEMY_2_SIZE[0]/2 > dist(self.pos,other.pos)                     
+            
+class Bullet:
+    def __init__(self, position, velocity,type):
+        self.pos = position
+        self.vel = velocity
+        self.type = type
+        
+    def draw(self, canvas):
+        if self.type == "player_bullets":
+            canvas.draw_image(PLAYER_BULLET_IMG,
+                            [PLAYER_BULLET_WIDTH/2,PLAYER_BULLET_HEIGHT/2],
+                            [PLAYER_BULLET_WIDTH,PLAYER_BULLET_HEIGHT],
+                            self.pos,
+                            PLAYER_BULLET_SIZE)
+            
+        if self.type == "enemy_bullets":
+            canvas.draw_image(ENEMY_BULLET_IMG,
+                            [ENEMY_BULLET_WIDTH/2,ENEMY_BULLET_HEIGHT/2],
+                            [ENEMY_BULLET_WIDTH,ENEMY_BULLET_HEIGHT],
+                            self.pos,
+                            ENEMY_BULLET_SIZE)
+            
+    def update(self):
+        for i in range(2):
+            self.pos[i] += self.vel[i]
+    
+def key_down(key):
+    if simplegui.KEY_MAP['space'] == key:
+        player.shoot()
+    if simplegui.KEY_MAP['up'] == key:
+        player.vel[1] = -9
+    if simplegui.KEY_MAP['down'] == key:
+        player.vel[1] = 9
+
+def key_up(key):
+    if simplegui.KEY_MAP['up'] == key:
+        player.vel[1] = 0
+    if simplegui.KEY_MAP['down'] == key:
+        player.vel[1] = 0
+
+# Handler to draw on canvas
+def draw(canvas):  
+    global time,score,game_over,lives,random_time, shooting_time, bullet_time, bullet_speed,shoot_time
+    shooting_time += 1
+    time += 1 
+    canvas.draw_image(BACKGROUND,
+                      (BACKGROUND_WIDTH/2,BACKGROUND_HEIGHT/2),
+                      (BACKGROUND_WIDTH,BACKGROUND_HEIGHT),
+                      background_pos,
+                      (FRAME_WIDTH*2,FRAME_HEIGHT))
+    player.update()
+    # Writing score and lives on canvas
+    canvas.draw_text('score: ' + (str)(score), (215,50), 30, 'Red')
+    canvas.draw_text('lives: ' + (str)(lives), (450,50), 30, 'Red')
+    
+    # Update background position 
+    background_pos[0] = (background_pos[0] - scroll_speed)%(FRAME_WIDTH)
+    
+    # Drawing game over
+    if game_over == True:
+        canvas.draw_image(GAME_OVER_IMG,
+                         (GAME_OVER_IMG_WIDTH/2,GAME_OVER_IMG_HEIGHT/2),
+                         (GAME_OVER_IMG_WIDTH,GAME_OVER_IMG_HEIGHT),
+                         (FRAME_WIDTH/2,FRAME_HEIGHT/2),
+                         (FRAME_WIDTH,FRAME_HEIGHT))
+    else:
+        player.draw(canvas)
+        #Stop player from going off screen
+        if player.pos[1] < 65:
+            player.pos[1] = 65
+        if player.pos[1] > 725:
+            player.pos[1] = 725
+        # Movement of enemies    
+        if time % random_time == 0:
+            random_time = random.randrange(100,115)
+            x_enemy_1 = FRAME_WIDTH
+            y_enemy_1 = random.randrange(50,735)
+            x_enemy_2 = FRAME_WIDTH
+            y_enemy_2 = random.randrange(50,740)
+            y_vel = 0
+            if score > 10000:
+                x_vel = -14
+                bullet_speed = -15
+                random_time = random.randrange(50,55)
+            elif score > 9000:
+                x_vel = -13
+                random_time = random.randrange(60,65)
+                bullet_speed = -14
+            elif score > 8000:
+                x_vel = -12
+                random_time = random.randrange(70,75)
+                bullet_speed = -13
+            elif score > 7000:
+                x_vel = -11
+                random_time = random.randrange(75,80)
+                bullet_speed = -12
+            elif score > 6000:
+                x_vel = -10
+                bullet_speed = -11
+                random_time = random.randrange(80,90)
+            elif score > 5000:
+                x_vel = -9
+                bullet_speed = -10
+                random_time = random.randrange(90,100)
+            elif score > 4000:
+                x_vel = -8
+                bullet_speed = -9
+            elif score > 3000:
+                x_vel = -7
+                bullet_speed = -8
+            elif score > 2000:
+                x_vel = -6 
+                bullet_speed = -7
+            elif score > 1000:
+                x_vel = -5
+                bullet_speed = -6
+                
+            else:
+                x_vel = -4
+           
+            
+            enemy1 = Enemy(ENEMY_1_IMG,[x_enemy_1,y_enemy_1],[x_vel,y_vel],"enemy_1")
+            enemies_list.append(enemy1)
+            enemy2 = Enemy(ENEMY_2_IMG,[x_enemy_2,y_enemy_2],[x_vel,y_vel],"enemy_2")
+            enemies_list.append(enemy2)
+            
+
+        for bullet in enemy_bullets:
+            bullet.draw(canvas)
+            bullet.update()
+            if bullet.pos[0] > FRAME_WIDTH:
+                enemy_bullets.remove(bullet)  
+                
+        # Collisions- Removing enemies
+        for bullet in player_bullets:
+            bullet.draw(canvas)
+            bullet.update()
+            # Removing bullets when they go off screen
+            if bullet.pos[0] > FRAME_WIDTH:
+                    player_bullets.remove(bullet)
+        for enemy in enemies_list:
+            enemy.draw(canvas)
+            enemy.update()
+            if enemy.type == "enemy_1":
+                if shooting_time % bullet_time == 0:
+                    enemy.shoot()
+                    bullet_time = random.randrange(100, 110)
+            
+            # Removing enemies when they go off screen
+            if enemy.pos[0] < 0:
+                enemies_list.remove(enemy)
+            if enemy.pos[0] < 0:
+                score -= 100
+            if score < -1:
+                game_over = True
+            
+            # Increasing score and removing objects after collision
+            for bullet in player_bullets:
+                 if enemy.has_collided(bullet):
+                    enemies_list.remove(enemy)
+                    player_bullets.remove(bullet)
+                    score += 100
+                    
+            for bullet in enemy_bullets:
+                if player.has_collided(bullet):
+                    enemy_bullets.remove(bullet)
+                    lives-=1
+                    if lives <= 0:
+                        game_over = True
+                      
+            if player.has_collided(enemy):
+                if enemy in enemies_list:
+                    enemies_list.remove(enemy)
+                    # Lives
+                    lives -= 1
+            if lives <= 0:
+                game_over = True
+                high_score_list.append(score)
+                high_score = max(high_score_list)
+                label2.set_text("Highest score is " +str(high_score))
+new_game()                    
+# Frame
+
+frame = simplegui.create_frame("Game",FRAME_WIDTH, FRAME_HEIGHT)
+# Writing on side of frame
+label = frame.add_label('Label')
+label.set_text('Shoot the enemies and watch out for the bullets, difficulty increases as your score increases, good luck.')
+label2 = frame.add_label("High score is " + str(score))
+frame.add_button("start new game", new_game)
+frame.set_draw_handler(draw)
+frame.set_keydown_handler(key_down)
+frame.set_keyup_handler(key_up)
+# Starting the frame animation
+frame.start()
